@@ -8,35 +8,58 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Corporate Professional Theme */
+    --background: 240 14% 97%;
+    --foreground: 210 24% 16%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 210 24% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 210 24% 16%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Corporate Blue Primary */
+    --primary: 213 94% 68%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 213 100% 85%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Professional Secondary */
+    --secondary: 215 14% 96%;
+    --secondary-foreground: 210 24% 16%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 215 14% 94%;
+    --muted-foreground: 210 15% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 213 100% 96%;
+    --accent-foreground: 213 94% 68%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Status Colors */
+    --success: 134 61% 41%;
+    --success-foreground: 0 0% 100%;
+    --warning: 48 96% 53%;
+    --warning-foreground: 210 24% 16%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 215 14% 89%;
+    --input: 215 14% 89%;
+    --ring: 213 94% 68%;
 
-    --radius: 0.5rem;
+    /* Professional Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-card: linear-gradient(145deg, hsl(var(--card)), hsl(215 14% 98%));
+    --gradient-sidebar: linear-gradient(180deg, hsl(213 94% 68%), hsl(213 100% 78%));
+
+    /* Shadows */
+    --shadow-soft: 0 2px 10px -3px hsl(var(--primary) / 0.1);
+    --shadow-card: 0 4px 25px -5px hsl(var(--primary) / 0.15);
+    --shadow-hover: 0 8px 35px -8px hsl(var(--primary) / 0.25);
+
+    /* Animation Variables */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -100,6 +123,121 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+@layer components {
+  /* Professional Card Styles */
+  .card-professional {
+    @apply bg-white shadow-[var(--shadow-card)] border border-border rounded-xl p-6 transition-[var(--transition-smooth)] hover:shadow-[var(--shadow-hover)];
+  }
+  
+  /* Button Variants */
+  .btn-primary-gradient {
+    @apply bg-[var(--gradient-primary)] text-primary-foreground font-medium px-6 py-3 rounded-lg transition-[var(--transition-smooth)] hover:scale-105 hover:shadow-[var(--shadow-hover)];
+  }
+  
+  .btn-professional {
+    @apply bg-white border border-primary text-primary font-medium px-6 py-3 rounded-lg transition-[var(--transition-smooth)] hover:bg-primary hover:text-primary-foreground hover:shadow-[var(--shadow-soft)];
+  }
+  
+  /* Status Badges */
+  .status-success {
+    @apply bg-success/10 text-success border border-success/20 px-3 py-1 rounded-full text-sm font-medium;
+  }
+  
+  .status-warning {
+    @apply bg-warning/10 text-warning-foreground border border-warning/20 px-3 py-1 rounded-full text-sm font-medium;
+  }
+  
+  .status-pending {
+    @apply bg-primary/10 text-primary border border-primary/20 px-3 py-1 rounded-full text-sm font-medium;
+  }
+  
+  /* Sidebar Animations */
+  .sidebar-item {
+    @apply flex items-center px-4 py-3 rounded-lg text-sidebar-foreground transition-[var(--transition-smooth)] hover:bg-white/10 hover:text-white;
+  }
+  
+  .sidebar-item.active {
+    @apply bg-white/20 text-white font-medium;
+  }
+  
+  /* Loading Animation */
+  .pulse-soft {
+    @apply animate-pulse bg-muted/50 rounded;
+  }
+  
+  /* Hover Effects */
+  .hover-lift {
+    @apply transition-[var(--transition-smooth)] hover:-translate-y-1 hover:shadow-[var(--shadow-hover)];
+  }
+}
+
+@layer utilities {
+  /* Custom Scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.2) transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--primary) / 0.2);
+    border-radius: 3px;
+  }
+  
+  /* Animation Utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+  
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
