@@ -32,6 +32,11 @@ export interface LeaveRequest {
   status: 'pending' | 'approved' | 'rejected';
   appliedAt: string;
   documents?: string[];
+  approvedBy?: string;
+  approvedAt?: string;
+  rejectedBy?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
 }
 
 export interface Ticket {
@@ -42,6 +47,9 @@ export interface Ticket {
   urgency: 'low' | 'medium' | 'high' | 'critical';
   status: 'pending' | 'resolved';
   createdAt: string;
+  assignedTo?: string;
+  category?: string;
+  resolution?: string;
   resolvedAt?: string;
   response?: string;
 }
@@ -52,6 +60,7 @@ export interface Holiday {
   date: string;
   type: 'mandatory' | 'optional';
   description?: string;
+  isUpcoming?: boolean;
 }
 
 export interface Payslip {
@@ -62,4 +71,7 @@ export interface Payslip {
   fileName: string;
   uploadedAt: string;
   uploadedBy: string;
+  grossSalary?: number;
+  netSalary?: number;
+  deductions?: number;
 }
