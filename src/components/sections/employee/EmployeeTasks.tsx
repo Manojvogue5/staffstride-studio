@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { 
   CheckSquare, 
   Plus,
@@ -80,6 +84,7 @@ export const EmployeeTasks: React.FC<EmployeeTasksProps> = ({ searchQuery }) => 
   const [taskModalMode, setTaskModalMode] = useState<'add' | 'edit'>('add');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [selectedDate, setSelectedDate] = useState<Date>();
 
   // Filter tasks based on search query and filters
   const filteredTasks = tasks.filter(task => {
@@ -87,8 +92,9 @@ export const EmployeeTasks: React.FC<EmployeeTasksProps> = ({ searchQuery }) => 
                          task.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
+    const matchesDate = !selectedDate || task.dueDate === format(selectedDate, 'yyyy-MM-dd');
     
-    return matchesSearch && matchesStatus && matchesPriority;
+    return matchesSearch && matchesStatus && matchesPriority && matchesDate;
   });
 
   const handleAddTask = () => {
@@ -206,6 +212,43 @@ export const EmployeeTasks: React.FC<EmployeeTasksProps> = ({ searchQuery }) => 
             <option value="medium">Medium</option>
             <option value="low">Low</option>
           </select>
+
+          {/* Date Filter */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "justify-start text-left font-normal",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                <Calendar size={16} className="mr-2" />
+                {selectedDate ? format(selectedDate, "PPP") : <span>Filter by Due Date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+
+          {selectedDate && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedDate(undefined)}
+              className="text-xs"
+            >
+              Clear Date
+            </Button>
+          )}
 
           <div className="ml-auto text-sm text-muted-foreground">
             Showing {filteredTasks.length} of {tasks.length} tasks
