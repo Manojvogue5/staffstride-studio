@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { 
   Users, 
   Calendar, 
@@ -12,7 +16,8 @@ import {
   LogOut,
   UserCheck,
   BarChart3,
-  Shield
+  Shield,
+  Filter
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 
@@ -30,6 +35,7 @@ export const DashboardNav: React.FC<DashboardNavProps> = ({
   onSearchChange
 }) => {
   const { user, logout } = useUser();
+  const [selectedDate, setSelectedDate] = useState<Date>();
 
   const getNavItems = () => {
     switch (user?.role) {
@@ -98,6 +104,32 @@ export const DashboardNav: React.FC<DashboardNavProps> = ({
         </div>
 
         <div className="flex items-center space-x-4">
+          {/* Date Filter */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "justify-start text-left font-normal",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                <Filter size={16} className="mr-2" />
+                {selectedDate ? format(selectedDate, "PPP") : <span>Filter by Date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
