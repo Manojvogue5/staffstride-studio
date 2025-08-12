@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { 
@@ -12,7 +14,9 @@ import {
   Trash2,
   Calendar,
   AlertCircle,
-  Filter
+  Filter,
+  Search,
+  X
 } from 'lucide-react';
 import { TaskModal } from '@/components/modals/TaskModal';
 import { Task } from '@/types/user';
@@ -82,20 +86,35 @@ export const EmployeeTasks: React.FC<EmployeeTasksProps> = ({ searchQuery }) => 
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskModalMode, setTaskModalMode] = useState<'add' | 'edit'>('add');
+  
+  // Unified filter states
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [selectedDate, setSelectedDate] = useState<Date>();
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // Filter tasks based on search query and filters
+  // Filter tasks based on all criteria
   const filteredTasks = tasks.filter(task => {
-    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         task.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const searchText = localSearchQuery || searchQuery;
+    const matchesSearch = !searchText || 
+      task.title.toLowerCase().includes(searchText.toLowerCase()) ||
+      task.description.toLowerCase().includes(searchText.toLowerCase());
     const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
     const matchesDate = !selectedDate || task.dueDate === format(selectedDate, 'yyyy-MM-dd');
     
     return matchesSearch && matchesStatus && matchesPriority && matchesDate;
   });
+
+  const clearAllFilters = () => {
+    setLocalSearchQuery('');
+    setStatusFilter('all');
+    setPriorityFilter('all');
+    setSelectedDate(undefined);
+  };
+
+  const hasActiveFilters = localSearchQuery || statusFilter !== 'all' || priorityFilter !== 'all' || selectedDate;
 
   const handleAddTask = () => {
     setSelectedTask(null);
@@ -183,74 +202,196 @@ export const EmployeeTasks: React.FC<EmployeeTasksProps> = ({ searchQuery }) => 
         </Button>
       </div>
 
-      {/* Filters */}
+      {/* Unified Filter System */}
       <Card className="p-4">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Filter size={16} className="text-muted-foreground" />
-            <span className="text-sm font-medium">Filters:</span>
-          </div>
-          
-          <select 
-            value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="border rounded px-3 py-1 text-sm"
-          >
-            <option value="all">All Status</option>
-            <option value="todo">To Do</option>
-            <option value="inprogress">In Progress</option>
-            <option value="completed">Completed</option>
-          </select>
-
-          <select 
-            value={priorityFilter} 
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            className="border rounded px-3 py-1 text-sm"
-          >
-            <option value="all">All Priority</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
-
-          {/* Date Filter */}
-          <Popover>
+        <div className="space-y-4">
+          {/* Main Filter Button */}
+          <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
             <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  "justify-start text-left font-normal",
-                  !selectedDate && "text-muted-foreground"
-                )}
+              <Button 
+                variant="outline" 
+                className="w-full justify-between"
               >
-                <Calendar size={16} className="mr-2" />
-                {selectedDate ? format(selectedDate, "PPP") : <span>Filter by Due Date</span>}
+                <div className="flex items-center space-x-2">
+                  <Filter size={16} />
+                  <span>
+                    {hasActiveFilters ? 'Filters Applied' : 'All Filters'}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {hasActiveFilters && (
+                    <span className="bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs">
+                      {[
+                        localSearchQuery && 'Search',
+                        statusFilter !== 'all' && 'Status',
+                        priorityFilter !== 'all' && 'Priority',
+                        selectedDate && 'Date'
+                      ].filter(Boolean).length}
+                    </span>
+                  )}
+                </div>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <CalendarComponent
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                initialFocus
-                className={cn("p-3 pointer-events-auto")}
-              />
+            <PopoverContent className="w-96 p-4" align="start">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold">Filter Tasks</h4>
+                  {hasActiveFilters && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={clearAllFilters}
+                      className="text-xs"
+                    >
+                      <X size={14} className="mr-1" />
+                      Clear All
+                    </Button>
+                  )}
+                </div>
+
+                {/* Search */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Search</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+                    <Input
+                      placeholder="Search tasks..."
+                      value={localSearchQuery}
+                      onChange={(e) => setLocalSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                {/* Status Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Status</label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="todo">To Do</SelectItem>
+                      <SelectItem value="inprogress">In Progress</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Priority Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Priority</label>
+                  <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Priority</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Date Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Due Date</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !selectedDate && "text-muted-foreground"
+                        )}
+                      >
+                        <Calendar size={16} className="mr-2" />
+                        {selectedDate ? format(selectedDate, "PPP") : <span>Select due date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
             </PopoverContent>
           </Popover>
 
-          {selectedDate && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedDate(undefined)}
-              className="text-xs"
-            >
-              Clear Date
-            </Button>
+          {/* Active Filters Display */}
+          {hasActiveFilters && (
+            <div className="flex items-center space-x-2 flex-wrap">
+              <span className="text-sm text-muted-foreground">Active filters:</span>
+              
+              {localSearchQuery && (
+                <div className="flex items-center bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs">
+                  <Search size={12} className="mr-1" />
+                  Search: "{localSearchQuery}"
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setLocalSearchQuery('')}
+                    className="ml-1 h-auto p-0 text-blue-700 hover:text-blue-900"
+                  >
+                    <X size={12} />
+                  </Button>
+                </div>
+              )}
+              
+              {statusFilter !== 'all' && (
+                <div className="flex items-center bg-green-50 text-green-700 px-2 py-1 rounded-full text-xs">
+                  Status: {statusFilter === 'inprogress' ? 'In Progress' : statusFilter === 'todo' ? 'To Do' : 'Completed'}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setStatusFilter('all')}
+                    className="ml-1 h-auto p-0 text-green-700 hover:text-green-900"
+                  >
+                    <X size={12} />
+                  </Button>
+                </div>
+              )}
+              
+              {priorityFilter !== 'all' && (
+                <div className="flex items-center bg-orange-50 text-orange-700 px-2 py-1 rounded-full text-xs">
+                  Priority: {priorityFilter}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setPriorityFilter('all')}
+                    className="ml-1 h-auto p-0 text-orange-700 hover:text-orange-900"
+                  >
+                    <X size={12} />
+                  </Button>
+                </div>
+              )}
+              
+              {selectedDate && (
+                <div className="flex items-center bg-purple-50 text-purple-700 px-2 py-1 rounded-full text-xs">
+                  <Calendar size={12} className="mr-1" />
+                  Date: {format(selectedDate, "MMM dd")}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedDate(undefined)}
+                    className="ml-1 h-auto p-0 text-purple-700 hover:text-purple-900"
+                  >
+                    <X size={12} />
+                  </Button>
+                </div>
+              )}
+            </div>
           )}
 
-          <div className="ml-auto text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground">
             Showing {filteredTasks.length} of {tasks.length} tasks
           </div>
         </div>
